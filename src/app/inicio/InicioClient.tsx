@@ -1,37 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
-/* ---------- Utilidades simples ---------- */
+/* ---------- Utilidad de texto degradado ---------- */
 function GradText({ children }: { children: React.ReactNode }) {
-  // Mock pasos/corazón
-const steps = 5460;         // de 8k objetivo
-const stepsGoal = 8000;
-const stepsPct = Math.min(100, Math.round((steps / stepsGoal) * 100));
-const heartBpm = 105;
-
-// Tendencia del ritmo cardiaco (mock)
-const heartTrend = +3; // bpm vs. ayer (puedes calcularlo real luego)
-
-// Animaciones
-const [animateBars, setAnimateBars] = useState(false);
-const [animateRing, setAnimateRing] = useState(false);
-
-useEffect(() => {
-  // doble RAF para asegurar animación en Edge
-  let r1 = 0, r2 = 0, r3 = 0, r4 = 0;
-  r1 = requestAnimationFrame(() => {
-    r2 = requestAnimationFrame(() => setAnimateBars(true));
-  });
-  r3 = requestAnimationFrame(() => {
-    r4 = requestAnimationFrame(() => setAnimateRing(true));
-  });
-  return () => {
-    cancelAnimationFrame(r1); cancelAnimationFrame(r2);
-    cancelAnimationFrame(r3); cancelAnimationFrame(r4);
-  };
-}, []);
-
   return (
     <span className="bg-gradient-to-r from-blue-600 to-green-400 bg-clip-text text-transparent">
       {children}
@@ -65,15 +37,14 @@ export default function InicioClient() {
   // Progreso semanal (0–100)
   const weeklyProgress = useMemo(() => [60, 75, 50, 80, 70, 65, 90], []);
 
-  // Animación barras
+  // Animación barras semanales
   const [animateBars, setAnimateBars] = useState(false);
   useEffect(() => {
-    let raf1 = 0, raf2 = 0;
+    let raf1 = 0,
+      raf2 = 0;
     raf1 = requestAnimationFrame(() => {
       raf2 = requestAnimationFrame(() => setAnimateBars(true));
     });
-
-    
     return () => {
       cancelAnimationFrame(raf1);
       cancelAnimationFrame(raf2);
@@ -81,11 +52,54 @@ export default function InicioClient() {
   }, []);
 
   // Mock pasos/corazón
-  const steps = 5460;         // de 8k objetivo
+  const steps = 5460; // de 8k objetivo
   const stepsGoal = 8000;
   const stepsPct = Math.min(100, Math.round((steps / stepsGoal) * 100));
   const heartBpm = 105;
+  const heartTrend = +3;
 
+  /* ---------- Animación: onda cardiaca ---------- */
+  const heartPathRef = useRef<SVGPathElement | null>(null);
+  const [heartLen, setHeartLen] = useState(0);
+  const [heartDrawn, setHeartDrawn] = useState(false);
+
+  useEffect(() => {
+    const el = heartPathRef.current;
+    if (!el) return;
+    const len = el.getTotalLength();
+    setHeartLen(len);
+    // doble RAF para asegurar que transicione en Edge
+    let r1 = 0,
+      r2 = 0;
+    r1 = requestAnimationFrame(() => {
+      r2 = requestAnimationFrame(() => setHeartDrawn(true));
+    });
+    return () => {
+      cancelAnimationFrame(r1);
+      cancelAnimationFrame(r2);
+    };
+  }, []);
+
+  /* ---------- Animación: aro de pasos ---------- */
+  const R = 15; // radio
+  const C = 2 * Math.PI * R; // circunferencia ~94.2
+  const [ringPct, setRingPct] = useState(0);
+
+  useEffect(() => {
+    let r1 = 0,
+      r2 = 0;
+    r1 = requestAnimationFrame(() => {
+      r2 = requestAnimationFrame(() => {
+        setRingPct((stepsPct / 100) * C);
+      });
+    });
+    return () => {
+      cancelAnimationFrame(r1);
+      cancelAnimationFrame(r2);
+    };
+  }, [C, stepsPct]);
+
+  // Tip motivacional
   const tips = [
     "Pequeños hábitos, grandes cambios.",
     "Respira 4-4-4 durante 1 minuto.",
@@ -116,48 +130,62 @@ export default function InicioClient() {
         </p>
       </header>
 
-      {/* Grid de tarjetas principales */}
+            {/* Grid de tarjetas principales */}
       <section className="px-6 grid grid-cols-2 gap-4">
-        {/* Card Heart */}
-        <article className="col-span-1 rounded-2xl p-4 shadow-sm border relative overflow-hidden
-                            bg-gradient-to-b from-blue-50 to-green-50">
+        {/* Card: Ritmo Cardíaco */}
+        <article className="col-span-1 rounded-2xl p-4 shadow-sm border relative overflow-hidden bg-gradient-to-b from-blue-50 to-green-50">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-sm font-medium text-gray-700">Ritmo Cardíaco</h3>
-            {/* ícono minimal */}
             <svg viewBox="0 0 24 24" className="h-4 w-4 text-blue-500" fill="currentColor" aria-hidden>
-              <path d="M12 21s-6.7-4.8-9.3-7.4A6 6 0 1 1 12 5a6 6 0 1 1 9.3 8.6C18.7 16.2 12 21 12 21z"/>
+              <path d="M12 21s-6.7-4.8-9.3-7.4A6 6 0 1 1 12 5a6 6 0 1 1 9.3 8.6C18.7 16.2 12 21 12 21z" />
             </svg>
           </div>
-          {/* Onda simple */}
-          <svg viewBox="0 0 200 80" className="w-full h-20">
-            <path
-              d="M0,50 Q30,10 60,40 T120,40 T180,30 T220,50"
-              className="stroke-[3] fill-none"
-              style={{ stroke: "url(#g)" }}
-            />
+
+          {/* Onda animada */}
+          <svg viewBox="0 0 220 80" className="w-full h-20">
             <defs>
-              <linearGradient id="g" x1="0" x2="1">
+              <linearGradient id="g-heart" x1="0" x2="1">
                 <stop offset="0" stopColor="#2563eb" />
                 <stop offset="1" stopColor="#22c55e" />
               </linearGradient>
             </defs>
+            <path
+              ref={heartPathRef}
+              d="M0,50
+                 Q20,20 40,40 T80,40
+                 T120,30 T160,45 T200,35 T240,50"
+              fill="none"
+              stroke="url(#g-heart)"
+              strokeWidth="3"
+              strokeLinecap="round"
+              style={{
+                strokeDasharray: heartLen,
+                strokeDashoffset: heartDrawn ? 0 : heartLen,
+                transition: "stroke-dashoffset 1500ms ease-out",
+              }}
+            />
           </svg>
+
           <p className="mt-2 text-2xl font-semibold">
-            <GradText>{heartBpm}</GradText> <span className="text-gray-500 text-sm">bpm</span>
+            <GradText>{heartBpm}</GradText>{" "}
+            <span className="text-gray-500 text-sm">bpm</span>
+          </p>
+          <p className="text-xs text-gray-500">
+            Tendencia diaria: {heartTrend > 0 ? "+" : ""}
+            {heartTrend} bpm
           </p>
         </article>
 
-        {/* Card Walk */}
-        <article className="col-span-1 rounded-2xl p-4 shadow-sm border relative overflow-hidden
-                    bg-gradient-to-b from-blue-50 to-green-50">
-  <div className="flex items-center justify-between mb-3">
-    <h3 className="text-sm font-medium text-gray-700">Pasos</h3>
-    <svg viewBox="0 0 24 24" className="h-4 w-4 text-green-500" fill="currentColor" aria-hidden>
-      <path d="M13 5a2 2 0 1 0-2-2 2 2 0 0 0 2 2zM6 22l2-6 3-2 2 3v5h2v-6l-1.5-2.5 1-2.5a5 5 0 0 0-4.6-3H9l-2 5 2 1 1-3 1.6.4-.9 2.1L7 17l-1 5z"/>
-    </svg>
-  </div>
+        {/* Card: Pasos */}
+        <article className="col-span-1 rounded-2xl p-4 shadow-sm border relative overflow-hidden bg-gradient-to-b from-blue-50 to-green-50">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-medium text-gray-700">Pasos</h3>
+            <svg viewBox="0 0 24 24" className="h-4 w-4 text-green-500" fill="currentColor" aria-hidden>
+              <path d="M13 5a2 2 0 1 0-2-2 2 2 0 0 0 2 2zM6 22l2-6 3-2 2 3v5h2v-6l-1.5-2.5 1-2.5a5 5 0 0 0-4.6-3H9l-2 5 2 1 1-3 1.6.4-.9 2.1L7 17l-1 5z" />
+            </svg>
+          </div>
 
-          {/* Aro de progreso con degradado */}
+          {/* Aro de progreso animado */}
           <div className="relative mx-auto h-24 w-24">
             <svg viewBox="0 0 36 36" className="h-24 w-24">
               <defs>
@@ -166,12 +194,23 @@ export default function InicioClient() {
                   <stop offset="1" stopColor="#22c55e" />
                 </linearGradient>
               </defs>
-              <circle cx="18" cy="18" r="15" fill="none" stroke="#e5e7eb" strokeWidth="4" />
+
+              {/* fondo */}
+              <circle cx="18" cy="18" r={R} fill="none" stroke="#e5e7eb" strokeWidth="4" />
+              {/* progreso */}
               <circle
-                cx="18" cy="18" r="15" fill="none"
-                stroke="url(#ring)" strokeWidth="4" strokeLinecap="round"
-                strokeDasharray={`${(stepsPct / 100) * 94.2} 94.2`}
+                cx="18"
+                cy="18"
+                r={R}
+                fill="none"
+                stroke="url(#ring)"
+                strokeWidth="4"
+                strokeLinecap="round"
                 transform="rotate(-90 18 18)"
+                style={{
+                  strokeDasharray: `${ringPct} ${C}`,
+                  transition: "stroke-dasharray 1500ms ease-out",
+                }}
               />
             </svg>
             <div className="absolute inset-0 flex items-center justify-center">

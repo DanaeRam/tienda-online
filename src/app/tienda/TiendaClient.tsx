@@ -154,7 +154,7 @@ export default function TiendaClient() {
 
       <section className="px-6 space-y-6 pb-28">
         {/* HERO: Test epigenético (SIN IMAGEN, SE MANTIENE) */}
-        <article className="rounded-3xl p-5 shadow-sm border bg-gradient-to-br from-amber-300 to-amber-200">
+        <article className="rounded-3xl p-5 shadow-sm border bg-gradient-to-br from-amber-300 to-amber-100">
           <p className="text-sm text-amber-900/90">Nuevo</p>
           <h3 className="text-lg font-semibold text-amber-950">Test epigenético ISORA</h3>
           <p className="text-sm text-amber-900/90 mt-1">

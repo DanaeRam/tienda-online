@@ -17,7 +17,7 @@ export const storeProducts: StoreProduct[] = [
     name: "Test epigenético ISORA",
     price: 2499,
     rating: 5,
-    image: "/slides/test.png",
+    image: "/slides/test.jpg",
     category: "Test",
     badges: ["Recomendado", "Resultados en 7–10 días"],
     objective: "Análisis epigenético para recomendaciones personalizadas.",

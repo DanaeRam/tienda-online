@@ -15,6 +15,23 @@ type Habit = {
 
 type WeeklyPoint = { d: string; exercise: number; supplements: number };
 
+type Friend = {
+  id: string;
+  name: string;
+  initials: string;
+  color: string; // bg color (tailwind)
+  streak: number;
+};
+
+type CollabChallenge = {
+  id: string;
+  title: string;
+  goalDays: number;            // meta de días (acumulado de equipo)
+  doneDays: number;            // progreso acumulado
+  members: string[];           // friend ids
+  todayMarkedBy: string[];     // quién ya marcó hoy
+};
+
 /* ========== Helpers ========== */
 const GradText = ({ children }: { children: React.ReactNode }) => (
   <span className="bg-gradient-to-r from-blue-600 to-green-400 bg-clip-text text-transparent">
@@ -26,10 +43,13 @@ const G = "bg-gradient-to-r from-blue-600 to-green-400";
 
 function ProgressBar({ value }: { value: number }) {
   return (
-    <div className="h-2 w-full rounded-full bg-gray-200">
+    <div className="h-2 w-full rounded-full bg-gray-200 overflow-hidden">
       <div
-        className={`h-2 rounded-full ${G}`}
-        style={{ width: `${Math.max(0, Math.min(100, value))}%` }}
+        className={`h-2 ${G}`}
+        style={{
+          width: `${Math.max(0, Math.min(100, value))}%`,
+          transition: "width 700ms ease-out",
+        }}
       />
     </div>
   );
@@ -41,7 +61,7 @@ function tinyId() {
 
 /* ========== Componente ========== */
 export default function HabitosClient() {
-  /* Estado base (persistente) */
+  /* ---------- Estado base (persistente) ---------- */
   const [habits, setHabits] = useState<Habit[]>([]);
   const [suppReminders, setSuppReminders] = useState<boolean>(true);
   const [suppTakenToday, setSuppTakenToday] = useState<number>(1); // tomas realizadas hoy (0..3)
@@ -77,7 +97,7 @@ export default function HabitosClient() {
     try { localStorage.setItem("suppTakenToday", String(suppTakenToday)); } catch {}
   }, [suppTakenToday]);
 
-  /* Crear nuevo hábito */
+  /* ---------- Crear nuevo hábito ---------- */
   const [newName, setNewName] = useState("");
   const [newIcon, setNewIcon] = useState("🌱");
   const [newFreq, setNewFreq] = useState<"Diario" | "Semanal">("Diario");
@@ -93,7 +113,7 @@ export default function HabitosClient() {
     setNewName("");
   };
 
-  /* Marcar progreso (check) */
+  /* ---------- Marcar progreso (check) ---------- */
   const tickHabit = (id: string) => {
     setHabits((prev) =>
       prev.map((h) =>
@@ -108,11 +128,11 @@ export default function HabitosClient() {
     );
   };
 
-  /* Suplementos */
+  /* ---------- Suplementos ---------- */
   const incSupp = () => setSuppTakenToday((v) => Math.min(3, v + 1));
   const decSupp = () => setSuppTakenToday((v) => Math.max(0, v - 1));
 
-  /* Gráfica semanal (mock + suplementos de hoy afectan último punto) */
+  /* ---------- Gráfica semanal (mock + suplementos de hoy) ---------- */
   const weekly: WeeklyPoint[] = useMemo(() => {
     const base: WeeklyPoint[] = [
       { d: "L", exercise: 3, supplements: 2 },
@@ -123,12 +143,11 @@ export default function HabitosClient() {
       { d: "S", exercise: 4, supplements: 3 },
       { d: "D", exercise: 2, supplements: 1 },
     ];
-    // último día refleja tomas de hoy (0..3)
-    base[6].supplements = suppTakenToday;
+    base[6].supplements = suppTakenToday; // último día refleja tomas de hoy (0..3)
     return base;
   }, [suppTakenToday]);
 
-  /* Animación de gráfica */
+  /* ---------- Animación de gráfica ---------- */
   const [animate, setAnimate] = useState(false);
   useEffect(() => {
     let r1 = 0, r2 = 0;
@@ -136,7 +155,7 @@ export default function HabitosClient() {
     return () => { cancelAnimationFrame(r1); cancelAnimationFrame(r2); };
   }, []);
 
-  /* Nombre del usuario (si está) */
+  /* ---------- Nombre del usuario ---------- */
   const [name, setName] = useState("Usuario");
   useEffect(() => {
     try {
@@ -144,6 +163,71 @@ export default function HabitosClient() {
       if (n) setName(n);
     } catch {}
   }, []);
+
+  /* =========================================================
+     NUEVO: Colaboración (amigos, compañeros y familiares)
+     ========================================================= */
+  const [friends, setFriends] = useState<Friend[]>([]);
+  const [collab, setCollab] = useState<CollabChallenge[]>([]);
+
+  useEffect(() => {
+    try {
+      const f = localStorage.getItem("habit_friends");
+      const c = localStorage.getItem("habit_collab");
+      if (f) setFriends(JSON.parse(f));
+      else {
+        const seed: Friend[] = [
+          { id: "f1", name: "Ana",   initials: "AN", color: "bg-blue-100",   streak: 5 },
+          { id: "f2", name: "Luis",  initials: "LU", color: "bg-emerald-100",streak: 8 },
+          { id: "f3", name: "Mamá",  initials: "MA", color: "bg-violet-100", streak: 3 },
+        ];
+        setFriends(seed);
+      }
+      if (c) setCollab(JSON.parse(c));
+      else {
+        const seedC: CollabChallenge[] = [
+          { id: "cc1", title: "7 días de hidratación 💧", goalDays: 28, doneDays: 13, members: ["f1","f2","f3"], todayMarkedBy: [] },
+          { id: "cc2", title: "Respiración 4-7-8 por la noche 🌙", goalDays: 21, doneDays: 9, members: ["f2","f3"], todayMarkedBy: [] },
+        ];
+        setCollab(seedC);
+      }
+    } catch {}
+  }, []);
+
+  useEffect(() => { try { localStorage.setItem("habit_friends", JSON.stringify(friends)); } catch {} }, [friends]);
+  useEffect(() => { try { localStorage.setItem("habit_collab", JSON.stringify(collab)); } catch {} }, [collab]);
+
+  const markToday = (challengeId: string, who: string) => {
+    setCollab(prev =>
+      prev.map(c => {
+        if (c.id !== challengeId) return c;
+        if (c.todayMarkedBy.includes(who)) return c; // evitar doble
+        return {
+          ...c,
+          doneDays: Math.min(c.goalDays, c.doneDays + 1),
+          todayMarkedBy: [...c.todayMarkedBy, who],
+        };
+      })
+    );
+    // Sube racha del amigo que marcó
+    setFriends(prev => prev.map(f => f.id === who ? { ...f, streak: f.streak + 1 } : f));
+  };
+
+  const progressPct = (c: CollabChallenge) =>
+    Math.round((c.doneDays / c.goalDays) * 100);
+
+  const shareInvite = async () => {
+    const text = "¡Únete a mis retos de hábitos en ISORA! 💪✨";
+    const url = typeof window !== "undefined" ? window.location.origin + "/habitos" : "";
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: "ISORA Hábitos", text, url });
+      } else {
+        await navigator.clipboard.writeText(`${text} ${url}`);
+        alert("Enlace copiado al portapapeles ✅");
+      }
+    } catch {}
+  };
 
   return (
     <main className="min-h-svh w-full bg-white pb-2">
@@ -169,6 +253,108 @@ export default function HabitosClient() {
             <button className="rounded-full px-3 py-1 text-xs text-white bg-gradient-to-r from-blue-600 to-green-400">
               Ver más
             </button>
+          </div>
+        </article>
+
+        {/* ----- NUEVO: Retos y rachas colaborativas ----- */}
+        <article className="rounded-2xl p-5 shadow-sm border bg-white">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-gray-900">Retos y rachas colaborativas</h2>
+            <button
+              onClick={shareInvite}
+              className="rounded-full px-3 py-1 text-xs text-white bg-gradient-to-r from-blue-600 to-green-400 active:scale-95"
+              title="Invitar amigos/familia"
+            >
+              Invitar
+            </button>
+          </div>
+
+          {/* Ranking simple */}
+          <div className="mt-4 rounded-xl border p-4">
+            <p className="text-sm font-medium text-gray-900 mb-3">Ranking semanal</p>
+            <ul className="space-y-3">
+              {friends
+                .slice()
+                .sort((a, b) => b.streak - a.streak)
+                .map((f, idx) => (
+                  <li key={f.id} className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <span className={`h-9 w-9 rounded-full ${f.color} flex items-center justify-center text-[11px] font-semibold text-gray-700`}>
+                        {f.initials}
+                      </span>
+                      <div>
+                        <p className="text-sm text-gray-800">{f.name}</p>
+                        <p className="text-[11px] text-gray-500">#{idx + 1} del ranking</p>
+                      </div>
+                    </div>
+                    <div className="text-sm text-gray-700">🔥 {f.streak} días</div>
+                  </li>
+                ))}
+            </ul>
+          </div>
+
+          {/* Retos en equipo */}
+          <div className="mt-4 grid gap-3">
+            {collab.map((c) => {
+              const pct = progressPct(c);
+              return (
+                <div key={c.id} className="rounded-xl border p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold text-gray-900">{c.title}</p>
+                      <p className="text-xs text-gray-500">
+                        Meta: {c.goalDays} días — Progreso: <GradText>{c.doneDays}</GradText>
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        // Simular que el usuario actual (id 'me') marca hoy.
+                        // Si tienes un id real, sustitúyelo aquí:
+                        const me = "me";
+                        // Asegurar esa "persona" en la lista visual (opcional):
+                        if (!friends.find(f => f.id === me)) {
+                          setFriends(prev => [
+                            ...prev,
+                            { id: "me", name: name || "Tú", initials: "TÚ", color: "bg-rose-100", streak: 0 }
+                          ]);
+                        }
+                        markToday(c.id, me);
+                      }}
+                      className="rounded-full px-3 py-1 text-xs text-white bg-gradient-to-r from-blue-600 to-green-400 active:scale-95 disabled:opacity-50"
+                      disabled={c.todayMarkedBy.includes("me")}
+                      title="Marcar cumplimiento de hoy"
+                    >
+                      {c.todayMarkedBy.includes("me") ? "¡Marcado!" : "Marcar hoy"}
+                    </button>
+                  </div>
+
+                  {/* Avatares de miembros */}
+                  <div className="mt-3 flex items-center gap-2">
+                    {c.members.map((id) => {
+                      const f = friends.find(fr => fr.id === id);
+                      if (!f) return null;
+                      return (
+                        <span key={id} className={`h-7 w-7 rounded-full ${f.color} flex items-center justify-center text-[10px] font-semibold text-gray-700`}>
+                          {f.initials}
+                        </span>
+                      );
+                    })}
+                    {/* añade "tú" si ya marcaste hoy */}
+                    {c.todayMarkedBy.includes("me") && (
+                      <span className="h-7 w-7 rounded-full bg-rose-100 flex items-center justify-center text-[10px] font-semibold text-gray-700">
+                        TÚ
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Progreso con animación */}
+                  <div className="mt-3">
+                    <ProgressBar value={pct} />
+                    <div className="mt-1 text-right text-[11px] text-gray-500">{pct}%</div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </article>
 
