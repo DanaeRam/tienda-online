@@ -9,10 +9,11 @@ export default function BienvenidoPage() {
   return (
     <main className="flex h-svh w-full items-center justify-center bg-white px-6 text-center">
       <div className="flex flex-col items-center">
-        {/* Logo */}
-        <div className="mx-auto mb-6 h-16 w-16">
-          <Image src="/logo.svg" alt="Logo de la app" width={64} height={64} priority />
-        </div>
+  {/* Logo */}
+  <div className="mx-auto mb-3 h-54 w-54">  {/* 24 = 6rem, ajusta según necesites */}
+    <Image src="/slides/logo_app.png" alt="Logo de la app" width={192} height={192} priority />
+  </div>
+
 
         {/* Texto */}
         <h1 className="text-3xl font-semibold text-gray-900">¡Bienvenido!</h1>
