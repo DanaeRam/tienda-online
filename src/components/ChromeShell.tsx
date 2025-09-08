@@ -30,12 +30,16 @@ export default function ChromeShell({ children }: PropsWithChildren) {
     <div className="min-h-dvh flex flex-col bg-white text-gray-900">
       {/* Header superior con menú hamburguesa */}
       <header className="sticky top-0 z-40 border-b bg-white/80 backdrop-blur">
-        <div className="mx-auto max-w-6xl px-4 h-14 flex items-center justify-between">
-          <NavHamburger />
-          <div className="text-sm font-semibold tracking-wide">ISORA</div>
-          <div className="w-6" />
-        </div>
-      </header>
+  <div className="mx-auto max-w-6xl px-4 h-14 flex items-center justify-between">
+    <NavHamburger />
+    <img
+      src="/slides/logo2_app.png" // Reemplaza con la ruta correcta de tu imagen
+      alt="ISORA Logo"
+      className="h-26" // Ajusta el tamaño según lo que necesites
+    />
+    <div className="w-6" />
+  </div>
+</header>
 
       {/* Contenido con espacio inferior para la barra */}
       <main className="flex-1 mx-auto w-full max-w-6xl px-4 py-6 pb-24">

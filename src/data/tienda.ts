@@ -50,7 +50,7 @@ export const storeProducts: StoreProduct[] = [
     name: "Enzimas Digestivas",
     price: 389,
     rating: 4.6,
-    image: "/slides/enzimas.jpg",
+    image: "/slides/enzimas.png",
     category: "Suplemento",
     components: ["Complejo enzimático especializado"],
     objective: "Mejorar digestión y absorción de nutrientes.",

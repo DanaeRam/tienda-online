@@ -122,7 +122,7 @@ export default function InicioClient() {
         <article className="col-span-1 rounded-2xl p-4 shadow-sm border relative overflow-hidden
                             bg-gradient-to-b from-blue-50 to-green-50">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-medium text-gray-700">Heart</h3>
+            <h3 className="text-sm font-medium text-gray-700">Ritmo Cardíaco</h3>
             {/* ícono minimal */}
             <svg viewBox="0 0 24 24" className="h-4 w-4 text-blue-500" fill="currentColor" aria-hidden>
               <path d="M12 21s-6.7-4.8-9.3-7.4A6 6 0 1 1 12 5a6 6 0 1 1 9.3 8.6C18.7 16.2 12 21 12 21z"/>
@@ -148,13 +148,14 @@ export default function InicioClient() {
         </article>
 
         {/* Card Walk */}
-        <article className="col-span-1 rounded-2xl p-4 shadow-sm border bg-white">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-medium text-gray-700">Walk</h3>
-            <svg viewBox="0 0 24 24" className="h-4 w-4 text-green-500" fill="currentColor" aria-hidden>
-              <path d="M13 5a2 2 0 1 0-2-2 2 2 0 0 0 2 2zM6 22l2-6 3-2 2 3v5h2v-6l-1.5-2.5 1-2.5a5 5 0 0 0-4.6-3H9l-2 5 2 1 1-3 1.6.4-.9 2.1L7 17l-1 5z"/>
-            </svg>
-          </div>
+        <article className="col-span-1 rounded-2xl p-4 shadow-sm border relative overflow-hidden
+                    bg-gradient-to-b from-blue-50 to-green-50">
+  <div className="flex items-center justify-between mb-3">
+    <h3 className="text-sm font-medium text-gray-700">Pasos</h3>
+    <svg viewBox="0 0 24 24" className="h-4 w-4 text-green-500" fill="currentColor" aria-hidden>
+      <path d="M13 5a2 2 0 1 0-2-2 2 2 0 0 0 2 2zM6 22l2-6 3-2 2 3v5h2v-6l-1.5-2.5 1-2.5a5 5 0 0 0-4.6-3H9l-2 5 2 1 1-3 1.6.4-.9 2.1L7 17l-1 5z"/>
+    </svg>
+  </div>
 
           {/* Aro de progreso con degradado */}
           <div className="relative mx-auto h-24 w-24">
@@ -176,7 +177,7 @@ export default function InicioClient() {
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="text-center">
                 <p className="text-lg font-semibold">{steps}</p>
-                <p className="text-[10px] text-gray-500">steps</p>
+                <p className="text-[10px] text-gray-500">pasos</p>
               </div>
             </div>
           </div>

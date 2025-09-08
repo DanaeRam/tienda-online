@@ -65,34 +65,36 @@ export default function ResultadosClient() {
 
       <section className="px-6 space-y-6 pb-10">
         {/* Tarjeta: Resultados epigenéticos */}
-        <article className="rounded-2xl p-5 shadow-sm border bg-white">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <p className="text-sm text-gray-500">Resultados epigenéticos</p>
-              <div className="mt-1 flex items-baseline gap-2">
-                <p className="text-3xl font-semibold">
-                  <GradText>{epiScore}</GradText>
-                </p>
-                <span className="text-sm text-gray-500">/100</span>
-              </div>
-              <p className="mt-1 text-sm text-gray-600">
-                Edad biológica: <GradText>{epiAgeDelta >= 0 ? `+${epiAgeDelta}` : epiAgeDelta}</GradText> años vs. tu edad cronológica
-              </p>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {epiTags.map((t) => <Badge key={t}>{t}</Badge>)}
-              </div>
-            </div>
+<article className="rounded-2xl p-5 shadow-sm border relative overflow-hidden
+                    bg-gradient-to-b from-blue-50 to-green-50">
+  <div className="flex items-start justify-between gap-4">
+    <div>
+      <p className="text-sm text-gray-700">Resultados epigenéticos</p>
+      <div className="mt-1 flex items-baseline gap-2">
+        <p className="text-3xl font-bold">
+          <GradText>{epiScore}</GradText>
+        </p>
+        <span className="text-sm text-gray-500">/100</span>
+      </div>
+      <p className="mt-1 text-sm text-gray-600">
+        Edad biológica: <GradText>{epiAgeDelta >= 0 ? `+${epiAgeDelta}` : epiAgeDelta}</GradText> años vs. tu edad cronológica
+      </p>
+      <div className="mt-2 flex flex-wrap gap-2">
+        {epiTags.map((t) => <Badge key={t}>{t}</Badge>)}
+      </div>
+    </div>
 
-            <button
-              className="rounded-full px-4 py-2 text-white text-sm font-medium
-                         bg-gradient-to-r from-blue-600 to-green-400 shadow
-                         hover:opacity-90 active:scale-95 transition"
-              onClick={() => alert("Abrir detalle de resultados epigenéticos")}
-            >
-              Ver resultados
-            </button>
-          </div>
-        </article>
+    <button
+      className="rounded-full px-4 py-2 text-white text-sm font-medium
+                 bg-gradient-to-r from-blue-600 to-green-400 shadow
+                 hover:opacity-90 active:scale-95 transition"
+      onClick={() => alert("Abrir detalle de resultados epigenéticos")}
+    >
+      Ver resultados
+    </button>
+  </div>
+</article>
+
 
         {/* Tarjeta: Progreso semanal (gráfica compacta tipo “overall statistics”) */}
         <article className="rounded-2xl p-5 shadow-sm border bg-white">
