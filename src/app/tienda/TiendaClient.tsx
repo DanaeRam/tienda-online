@@ -59,7 +59,6 @@ export default function TiendaClient() {
     // aquí luego podrás integrar un store real (Zustand/Server Actions)
     // por ahora, feedback mínimo:
     if (typeof window !== "undefined") {
-      // eslint-disable-next-line no-alert
       console.log(`Añadido al carrito: ${name}`);
     }
   };

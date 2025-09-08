@@ -12,7 +12,6 @@ const heartBpm = 105;
 
 // Tendencia del ritmo cardiaco (mock)
 const heartTrend = +3; // bpm vs. ayer (puedes calcularlo real luego)
-const heartTrendUp = heartTrend >= 0;
 
 // Animaciones
 const [animateBars, setAnimateBars] = useState(false);

@@ -316,7 +316,7 @@ export default function HabitosClient() {
               <select
                 className="w-full rounded-xl border px-3 py-2"
                 value={newFreq}
-                onChange={(e) => setNewFreq(e.target.value as any)}
+                onChange={(e) => setNewFreq(e.target.value as "Diario" | "Semanal")}
               >
                 <option>Diario</option>
                 <option>Semanal</option>
