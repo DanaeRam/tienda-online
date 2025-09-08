@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 const G = "from-blue-600 to-green-400";
 const GText = "bg-gradient-to-r from-blue-600 to-green-400 bg-clip-text text-transparent";
 
-type Tab = { href: string; label: string; icon: JSX.Element };
+type Tab = { href: string; label: string; icon: React.ReactNode };
 
 function GradIcon({ children }: { children: React.ReactNode }) {
   return (
