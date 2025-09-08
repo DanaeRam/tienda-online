@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { storeProducts } from "@/data/tienda";
 
 const GradText = ({ children }: { children: React.ReactNode }) => (
@@ -11,10 +11,12 @@ const GradText = ({ children }: { children: React.ReactNode }) => (
   </span>
 );
 
+/* ---------- Estrellas ---------- */
 function Stars({ rating }: { rating: number }) {
   const full = Math.floor(rating);
   const half = rating - full >= 0.5;
   const empty = 5 - full - (half ? 1 : 0);
+
   const Star = ({ fill = true }: { fill?: boolean }) => (
     <svg viewBox="0 0 20 20" className="h-4 w-4" aria-hidden>
       <path
@@ -30,6 +32,7 @@ function Stars({ rating }: { rating: number }) {
       </defs>
     </svg>
   );
+
   return (
     <div className="flex items-center gap-0.5 text-xs text-gray-500">
       {Array.from({ length: full }).map((_, i) => <Star key={`f${i}`} />)}
@@ -50,30 +53,93 @@ function Stars({ rating }: { rating: number }) {
           </svg>
         </div>
       )}
-      {Array.from({ length: empty }).map((_, i) => (
-        <Star key={`e${i}`} fill={false} />
-      ))}
+      {Array.from({ length: empty }).map((_, i) => <Star key={`e${i}`} fill={false} />)}
       <span className="ml-1">{rating.toFixed(1)}</span>
     </div>
   );
 }
 
+/* ---------- Gamificación ---------- */
+type Challenge = {
+  id: string;
+  title: string;
+  points: number;
+  done: boolean;
+};
+const DEFAULT_CHALLENGES: Challenge[] = [
+  { id: "ch1", title: "Completar perfil de salud", points: 50, done: false },
+  { id: "ch2", title: "Registrar 3 días de hábitos", points: 80, done: false },
+  { id: "ch3", title: "Primera compra de suplemento", points: 50, done: false },
+];
+const REWARD_STEP = 500;
+
 export default function TiendaClient() {
   const [cartCount, setCartCount] = useState(0);
 
+  // productos actuales (se mantiene tu contenido)
   const test = storeProducts.find((p) => p.slug === "test-epigenetico")!;
   const suplementos = storeProducts.filter((p) => p.category === "Suplemento");
 
   const add = (name: string) => {
     setCartCount((c) => c + 1);
-    if (typeof window !== "undefined") {
-      console.log(`Añadido al carrito: ${name}`);
-    }
+    if (typeof window !== "undefined") console.log(`Añadido al carrito: ${name}`);
   };
+
+  // ---- estado de gamificación (nuevo, minimalista) ----
+  const [points, setPoints] = useState<number>(0);
+  const [challenges, setChallenges] = useState<Challenge[]>(DEFAULT_CHALLENGES);
+
+  // cargar/persistir
+  useEffect(() => {
+    try {
+      const p = localStorage.getItem("store_points");
+      if (p) setPoints(Math.max(0, Number(p)));
+      const c = localStorage.getItem("store_challenges");
+      if (c) {
+        const parsed = JSON.parse(c) as Challenge[];
+        if (Array.isArray(parsed)) setChallenges(parsed);
+      }
+    } catch {}
+  }, []);
+  useEffect(() => {
+    try {
+      localStorage.setItem("store_points", String(points));
+      localStorage.setItem("store_challenges", JSON.stringify(challenges));
+    } catch {}
+  }, [points, challenges]);
+
+  // helpers
+  const earnPoints = (amount: number) => setPoints((p) => p + Math.max(0, amount));
+  const toggleChallenge = (id: string) => {
+    setChallenges((prev) =>
+      prev.map((ch) => {
+        if (ch.id !== id) return ch;
+        if (!ch.done) earnPoints(ch.points);
+        return { ...ch, done: !ch.done };
+      })
+    );
+  };
+  const progressToNext = useMemo(() => {
+    const remainder = points % REWARD_STEP;
+    const pct = Math.min(100, Math.round((remainder / REWARD_STEP) * 100));
+    const missing = REWARD_STEP - remainder;
+    return { pct, missing };
+  }, [points]);
+  const canRedeem = points >= REWARD_STEP;
+  const redeem = () => {
+    if (!canRedeem) return;
+    setPoints((p) => Math.max(0, p - REWARD_STEP));
+    if (typeof window !== "undefined") alert("¡Canje realizado! 🎉 (demo)");
+  };
+
+  // acciones demo
+  const simulatePurchaseTest = () => earnPoints(300);
+  const simulatePurchaseSupplement = () => earnPoints(50);
+  const simulateReview = () => earnPoints(30);
 
   return (
     <main className="min-h-svh w-full bg-white">
-      {/* Header / título */}
+      {/* Header / título (SE MANTIENE) */}
       <header className="px-6 pt-8 pb-4">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-semibold text-gray-900">Tienda</h1>
@@ -86,8 +152,8 @@ export default function TiendaClient() {
         </p>
       </header>
 
-      <section className="px-6 space-y-6 pb-24">
-        {/* HERO: Test epigenético (sin imagen) */}
+      <section className="px-6 space-y-6 pb-28">
+        {/* HERO: Test epigenético (SIN IMAGEN, SE MANTIENE) */}
         <article className="rounded-3xl p-5 shadow-sm border bg-gradient-to-br from-amber-300 to-amber-200">
           <p className="text-sm text-amber-900/90">Nuevo</p>
           <h3 className="text-lg font-semibold text-amber-950">Test epigenético ISORA</h3>
@@ -109,25 +175,110 @@ export default function TiendaClient() {
             >
               Saber más
             </Link>
+            
+          </div>
+        </article>
+
+        {/* -------- NUEVO: Recompensas / Gamificación -------- */}
+        <article className="rounded-2xl border bg-white p-5 shadow-sm">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h3 className="text-base font-semibold text-gray-900">
+                Recompensas <GradText>ISORA</GradText>
+              </h3>
+              <p className="text-xs text-gray-500">Gana puntos por compras y hábitos.</p>
+            </div>
+            <div className="text-right">
+              <p className="text-[11px] text-gray-500">Tus puntos</p>
+              <p className="text-2xl font-semibold">
+                <GradText>{points}</GradText>
+              </p>
+            </div>
+          </div>
+
+          {/* Progreso hacia el canje */}
+          <div className="mt-4">
+            <div className="flex items-center justify-between text-xs text-gray-500">
+              <span>Progreso a canje</span>
+              <span>{progressToNext.pct}%</span>
+            </div>
+            <div className="mt-2 h-2 rounded-full bg-gray-200 overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-blue-600 to-green-400 transition-[width] duration-700"
+                style={{ width: `${progressToNext.pct}%` }}
+              />
+            </div>
+            <p className="mt-2 text-xs text-gray-600">
+              Te faltan <b>{progressToNext.missing}</b> pts para tu próxima recompensa.
+            </p>
+          </div>
+
+          {/* CTA canje + acciones demo */}
+          <div className="mt-4 flex flex-wrap gap-3">
             <button
-              onClick={() => add(test.name)}
-              className="h-9 w-9 rounded-full bg-white/90 text-amber-900 shadow flex items-center justify-center text-lg"
-              aria-label="Agregar test al carrito"
+              onClick={redeem}
+              disabled={!canRedeem}
+              className="rounded-full px-5 py-2.5 text-white font-medium shadow bg-gradient-to-r from-blue-600 to-green-400 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+              title={canRedeem ? "Canjear 500 pts" : "Necesitas 500 pts"}
             >
-              ＋
+              Canjear 500 pts
+            </button>
+            <button
+              onClick={simulateReview}
+              className="rounded-full px-5 py-2.5 text-sm font-medium border"
+              title="Demo: +30 pts por reseña"
+            >
+              Escribir reseña (+30)
+            </button>
+            <button
+              onClick={simulatePurchaseSupplement}
+              className="rounded-full px-5 py-2.5 text-sm font-medium border"
+              title="Demo: +50 pts por compra de suplemento"
+            >
+              Registrar compra suplemento (+50)
             </button>
           </div>
         </article>
 
-        {/* Filtros simples (chips) */}
+        {/* Retos activos */}
+        <article className="rounded-2xl border bg-white p-5 shadow-sm">
+          <h4 className="text-sm font-semibold text-gray-900">Retos activos</h4>
+          <ul className="mt-3 divide-y">
+            {challenges.map((ch) => (
+              <li key={ch.id} className="flex items-center justify-between py-3">
+                <div className="flex items-center gap-3">
+                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-r from-blue-600 to-green-400 text-white">
+                    🎯
+                  </span>
+                  <div>
+                    <p className="text-sm text-gray-800">{ch.title}</p>
+                    <p className="text-xs text-gray-500">+{ch.points} pts</p>
+                  </div>
+                </div>
+                <label className="inline-flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={ch.done}
+                    onChange={() => toggleChallenge(ch.id)}
+                    className="h-4 w-4 accent-green-500"
+                    aria-label={`Completar reto: ${ch.title}`}
+                  />
+                  <span className="text-xs text-gray-600">{ch.done ? "Completado" : "Marcar"}</span>
+                </label>
+              </li>
+            ))}
+          </ul>
+        </article>
+
+        
+
+        {/* Filtros simples (SE MANTIENEN) */}
         <div className="flex items-center gap-2 overflow-x-auto">
           {["Todos", "Suplementos", "Test"].map((c, i) => (
             <button
               key={c}
               className={`rounded-full px-3 py-1 text-sm border ${
-                i === 0
-                  ? "bg-gray-900 text-white"
-                  : "bg-white text-gray-700 hover:bg-gray-50"
+                i === 0 ? "bg-gray-900 text-white" : "bg-white text-gray-700 hover:bg-gray-50"
               }`}
             >
               {c}
@@ -135,40 +286,31 @@ export default function TiendaClient() {
           ))}
         </div>
 
-        {/* Grid de productos (tarjetas blancas) */}
+        {/* Grid suplementos (SE MANTIENE con botón + centrado) */}
         <div className="grid grid-cols-2 gap-4">
           {suplementos.map((p) => (
-            <article
-              key={p.slug}
-              className="rounded-2xl p-3 shadow-sm border bg-white flex flex-col"
-            >
-              {/* Imagen -> detalle */}
-              <Link
-                href={`/tienda/${p.slug}`}
-                className="block relative rounded-xl bg-gray-50 h-28 overflow-hidden"
-              >
+            <article key={p.slug} className="rounded-2xl p-3 shadow-sm border bg-white flex flex-col">
+              <Link href={`/tienda/${p.slug}`} className="block relative rounded-xl bg-gray-50 h-28 overflow-hidden">
                 <Image src={p.image} alt={p.name} fill className="object-contain" />
               </Link>
 
-              {/* Meta */}
               <div className="mt-3 flex-1">
                 <p className="text-[11px] text-gray-500">Suplemento</p>
-                <h3 className="text-sm font-medium text-gray-900 line-clamp-2">
-                  {p.name}
-                </h3>
+                <h3 className="text-sm font-medium text-gray-900 line-clamp-2">{p.name}</h3>
                 <div className="mt-1 flex items-center">
                   <Stars rating={p.rating} />
                 </div>
                 <p className="mt-1 text-sm font-semibold">
-                  ${p.price.toFixed(2)}{" "}
-                  <span className="text-xs text-gray-500">MXN</span>
+                  ${p.price.toFixed(2)} <span className="text-xs text-gray-500">MXN</span>
                 </p>
               </div>
 
-              {/* Botón centrado abajo */}
               <div className="mt-3 flex justify-center">
                 <button
-                  onClick={() => add(p.name)}
+                  onClick={() => {
+                    add(p.name);
+                    simulatePurchaseSupplement(); // demo: +50 pts
+                  }}
                   className="h-9 w-9 rounded-full bg-gradient-to-r from-blue-600 to-green-400 text-white flex items-center justify-center text-lg shadow active:scale-95"
                   aria-label={`Agregar ${p.name} al carrito`}
                 >
