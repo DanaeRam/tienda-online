@@ -23,7 +23,7 @@ export default function AuthClient() {
     try {
       localStorage.setItem("userName", trimmed);
       setSaved(true);
-      router.push("/inicio"); // ⬅️ ir a la pantalla de inicio
+      router.push("/personaje"); // ⬅️ ir a la pantalla de inicio
     } catch {
       alert("No se pudo guardar localmente. Intenta de nuevo.");
     }

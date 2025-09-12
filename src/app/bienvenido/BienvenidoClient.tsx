@@ -24,7 +24,7 @@ export default function BienvenidoClient() {
           <Image src="/logo.svg" alt="Logo de la app" width={64} height={64} priority />
         </div>
 
-        <h1 className="text-3xl font-semibold text-gray-900">¡Bienvenido!</h1>
+        <h1 className="text-3xl font-semibold text-gray-900">¡Bienvenid@!</h1>
         <p className="mt-2 text-gray-600 max-w-xs">
           Estamos listos para acompañarte en tu camino de salud y bienestar.
         </p>
