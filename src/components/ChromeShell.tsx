@@ -33,10 +33,10 @@ export default function ChromeShell({ children }: PropsWithChildren) {
   <div className="mx-auto max-w-6xl px-4 h-14 flex items-center justify-between">
     <NavHamburger />
     <img
-      src="/slides/logo2_app.png" // Reemplaza con la ruta correcta de tu imagen
-      alt="ISORA Logo"
-      className="h-26" // Ajusta el tamaño según lo que necesites
-    />
+          src="/slides/logo2_app.png" // Reemplaza con la ruta correcta
+          alt="ISORA Logo"
+          className="h-10 w-auto"     // antes era h-6 → ahora más grande
+        />
     <div className="w-6" />
   </div>
 </header>

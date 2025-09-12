@@ -32,23 +32,21 @@ export default function AppFrame({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex flex-col min-h-screen w-full bg-white" suppressHydrationWarning>
-      {/* Header: solo cuando montó y no toca ocultar */}
-      {mounted && !shouldHide && (
-        <header className="sticky top-0 z-40 bg-white/90 backdrop-blur">
-          <div className="px-4 h-14 flex items-center justify-between w-full">
-            <NavHamburger />
-            <Image
-              src="/slides/logo2_app.png"
-              alt="ISORA"
-              width={96}
-              height={24}
-              className="h-6 w-auto"
-              priority
-            />
-            <div className="w-6" />
-          </div>
-        </header>
-      )}
+      {/* Header */}
+{mounted && !shouldHide && (
+  <header className="sticky top-0 z-40 bg-white/90 backdrop-blur">
+    <div className="px-4 h-16 flex items-center justify-between w-full">
+      <NavHamburger />
+      <img
+        src="/slides/logo2_app.png"
+        alt="ISORA Logo"
+        className="h-12 w-auto"  // -> más grande (puedes usar h-14 si quieres)
+      />
+      <div className="w-6" />
+    </div>
+  </header>
+)}
+
 
       {/* Contenido */}
       <main className={mainClass} suppressHydrationWarning>
